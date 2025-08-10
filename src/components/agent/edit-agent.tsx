@@ -24,7 +24,6 @@ import {
   WandSparklesIcon,
   Bookmark,
   BookmarkCheck,
-  Trash2,
 } from "lucide-react";
 import { Button } from "ui/button";
 import {
@@ -39,7 +38,7 @@ import { Textarea } from "ui/textarea";
 import { ScrollArea } from "ui/scroll-area";
 import { Skeleton } from "ui/skeleton";
 import { TextShimmer } from "ui/text-shimmer";
-import { ItemActions, Visibility } from "ui/item-actions";
+import { ShareableActions, Visibility } from "@/components/shareable-actions";
 import { GenerateAgentDialog } from "./generate-agent-dialog";
 import { AgentIconPicker } from "./agent-icon-picker";
 import { AgentToolSelector } from "./agent-tool-selector";
@@ -47,6 +46,7 @@ import {
   RandomDataGeneratorExample,
   WeatherExample,
 } from "lib/ai/agent/example";
+import { notify } from "lib/notify";
 
 const defaultConfig = (): PartialBy<
   Omit<Agent, "createdAt" | "updatedAt" | "userId">,
@@ -220,7 +220,10 @@ export default function EditAgent({
   const deleteAgent = useCallback(async () => {
     if (!initialAgent?.id) return;
 
-    if (!confirm(t("Agent.deleteConfirm"))) return;
+    const ok = await notify.confirm({
+      description: t("Agent.deleteConfirm"),
+    });
+    if (!ok) return;
 
     try {
       await fetcher(`/api/agent/${initialAgent.id}`, {
@@ -364,7 +367,7 @@ export default function EditAgent({
 
                 {/* Visibility dropdown - only for owners */}
                 {isOwner && (
-                  <ItemActions
+                  <ShareableActions
                     type="agent"
                     visibility={agent.visibility || "private"}
                     isOwner={true}
@@ -511,16 +514,15 @@ export default function EditAgent({
         </div>
 
         {hasEditAccess && (
-          <div className={cn("flex justify-between", false && "hidden")}>
+          <div className={cn("flex justify-end gap-2")}>
             {/* Delete button - only for owners */}
             {initialAgent && isOwner && (
               <Button
-                className="mt-2"
-                variant="destructive"
+                className="mt-2 hover:text-destructive"
+                variant="ghost"
                 onClick={deleteAgent}
                 disabled={isLoading}
               >
-                <Trash2 className="size-4 mr-2" />
                 {t("Common.delete")}
               </Button>
             )}

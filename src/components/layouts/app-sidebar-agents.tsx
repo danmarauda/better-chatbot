@@ -5,14 +5,20 @@ import Link from "next/link";
 import { SidebarMenuButton, SidebarMenuSkeleton } from "ui/sidebar";
 import { SidebarGroupContent, SidebarMenu, SidebarMenuItem } from "ui/sidebar";
 import { SidebarGroup } from "ui/sidebar";
-import { ArrowUpRightIcon, MoreHorizontal, PlusIcon } from "lucide-react";
+import {
+  ArrowUpRightIcon,
+  ChevronDown,
+  ChevronUp,
+  MoreHorizontal,
+  PlusIcon,
+} from "lucide-react";
 
 import { useMounted } from "@/hooks/use-mounted";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 
 import { useTranslations } from "next-intl";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useAgents } from "@/hooks/queries/use-agents";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { AgentDropdown } from "../agent/agent-dropdown";
@@ -23,10 +29,13 @@ import { ChatMention } from "app-types/chat";
 import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
 import { Separator } from "ui/separator";
 
+const DISPLAY_LIMIT = 5; // Number of agents to show when collapsed
+
 export function AppSidebarAgents() {
   const mounted = useMounted();
   const t = useTranslations();
   const router = useRouter();
+  const [expanded, setExpanded] = useState(false);
   const { agents, myAgents, bookmarkedAgents, sharedAgents, isLoading } =
     useAgents({ limit: 50 }); // Increase limit since we're not artificially limiting display
 
@@ -129,9 +138,16 @@ export function AppSidebarAgents() {
             </div>
           ) : (
             <>
-              <div className="h-[200px] w-full overflow-y-auto">
+              <div
+                className={
+                  expanded ? "max-h-[300px] w-full overflow-y-auto" : "w-full"
+                }
+              >
                 <div className="flex flex-col gap-1">
-                  {myAgents?.map((agent, i) => {
+                  {(expanded
+                    ? myAgents
+                    : myAgents.slice(0, DISPLAY_LIMIT)
+                  )?.map((agent, i) => {
                     return (
                       <SidebarMenu
                         key={agent.id}
@@ -195,7 +211,7 @@ export function AppSidebarAgents() {
                     );
                   })}
 
-                  {bookmarkedAgents.length > 0 && (
+                  {bookmarkedAgents.length > 0 && expanded && (
                     <>
                       <Separator className="my-1" />
                       {bookmarkedAgents.map((agent, i) => {
@@ -269,6 +285,31 @@ export function AppSidebarAgents() {
                   )}
                 </div>
               </div>
+
+              {/* Show More/Less Button */}
+              {myAgents.length + bookmarkedAgents.length > DISPLAY_LIMIT && (
+                <SidebarMenu className="group/showmore mr-0 mt-2">
+                  <SidebarMenuItem className="px-2 cursor-pointer">
+                    <SidebarMenuButton
+                      onClick={() => setExpanded(!expanded)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <div className="flex items-center gap-1">
+                        <p className="text-xs">
+                          {expanded
+                            ? t("Common.showLess")
+                            : t("Common.showMore")}
+                        </p>
+                        {expanded ? (
+                          <ChevronUp className="size-3.5" />
+                        ) : (
+                          <ChevronDown className="size-3.5" />
+                        )}
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              )}
             </>
           )}
         </SidebarMenu>
