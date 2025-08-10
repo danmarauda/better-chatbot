@@ -28,8 +28,8 @@ const staticModels = {
     reasoningEffort: "medium",
     }),
     "4o-mini": openai("gpt-4o-mini"),
-    "o4-mini": openai("o4-mini",
-    reasoningEffort: "medium",
+    "o4-mini": openai("o4-mini", {
+      reasoningEffort: "medium",
     }),
   },
   google: {
