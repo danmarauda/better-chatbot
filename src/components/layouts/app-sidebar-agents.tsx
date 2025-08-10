@@ -18,7 +18,7 @@ import { useMounted } from "@/hooks/use-mounted";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAgents } from "@/hooks/queries/use-agents";
 import { Avatar, AvatarFallback, AvatarImage } from "ui/avatar";
 import { AgentDropdown } from "../agent/agent-dropdown";
@@ -35,7 +35,13 @@ export function AppSidebarAgents() {
   const t = useTranslations();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
-  const { agents, sharedAgents, isLoading } = useAgents({ limit: 50 }); // Increase limit since we're not artificially limiting display
+  const { bookmarkedAgents, myAgents, sharedAgents, isLoading } = useAgents({
+    limit: 50,
+  }); // Increase limit since we're not artificially limiting display
+
+  const agents = useMemo(() => {
+    return [...myAgents, ...bookmarkedAgents];
+  }, [bookmarkedAgents, myAgents]);
 
   const handleAgentClick = useCallback(
     (id: string) => {
