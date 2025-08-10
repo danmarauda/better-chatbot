@@ -245,41 +245,36 @@ export default function EditAgent({
     setIsBookmarked(!isBookmarked);
   }, [initialAgent?.id, isBookmarked, toggleBookmark]);
 
-  const handleGenerateAgent = useCallback(
-    (generatedData: any) => {
-      objectFlow(generatedData).forEach((data, key) => {
-        setAgent((prev) => {
-          if (key === "name") {
-            return { name: data as string };
-          }
-          if (key === "description") {
-            return { description: data as string };
-          }
-          if (key === "instructions") {
-            textareaRef.current?.scrollTo({
-              top: textareaRef.current?.scrollHeight,
-            });
-            return {
-              instructions: {
-                ...prev.instructions,
-                systemPrompt: data as string,
-              },
-            };
-          }
-          if (key === "role") {
-            return {
-              instructions: {
-                ...prev.instructions,
-                role: data as string,
-              },
-            };
-          }
-          return prev;
-        });
+  const handleAgentChange = useCallback((generatedData: any) => {
+    if (textareaRef.current) {
+      textareaRef.current.scrollTo({
+        top: textareaRef.current.scrollHeight,
       });
-    },
-    [setAgent],
-  );
+    }
+    setAgent((prev) => {
+      return objectFlow(generatedData).map((data, key) => {
+        if (key === "name") {
+          return data;
+        }
+        if (key === "description") {
+          return data;
+        }
+        if (key === "instructions") {
+          return {
+            ...prev.instructions,
+            systemPrompt: data as string,
+          };
+        }
+        if (key === "role") {
+          return {
+            ...prev.instructions,
+            role: data as string,
+          };
+        }
+        return prev;
+      });
+    });
+  }, []);
 
   const isLoadingTool = useMemo(() => {
     return isMcpLoading || isWorkflowLoading;
@@ -542,7 +537,7 @@ export default function EditAgent({
       <GenerateAgentDialog
         open={openGenerateAgentDialog}
         onOpenChange={setOpenGenerateAgentDialog}
-        onGenerated={handleGenerateAgent}
+        onAgentChange={handleAgentChange}
         onToolsGenerated={assignToolsByNames}
       />
     </ScrollArea>

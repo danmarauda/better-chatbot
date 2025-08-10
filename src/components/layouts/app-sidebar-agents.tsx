@@ -27,7 +27,6 @@ import { appStore } from "@/app/store";
 import { useRouter } from "next/navigation";
 import { ChatMention } from "app-types/chat";
 import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
-import { Separator } from "ui/separator";
 
 const DISPLAY_LIMIT = 5; // Number of agents to show when collapsed
 
@@ -36,8 +35,7 @@ export function AppSidebarAgents() {
   const t = useTranslations();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
-  const { agents, myAgents, bookmarkedAgents, sharedAgents, isLoading } =
-    useAgents({ limit: 50 }); // Increase limit since we're not artificially limiting display
+  const { agents, sharedAgents, isLoading } = useAgents({ limit: 50 }); // Increase limit since we're not artificially limiting display
 
   const handleAgentClick = useCallback(
     (id: string) => {
@@ -140,154 +138,80 @@ export function AppSidebarAgents() {
             <>
               <div
                 className={
-                  expanded ? "max-h-[300px] w-full overflow-y-auto" : "w-full"
+                  expanded ? "max-h-[200px] w-full overflow-y-auto" : "w-full"
                 }
               >
                 <div className="flex flex-col gap-1">
-                  {(expanded
-                    ? myAgents
-                    : myAgents.slice(0, DISPLAY_LIMIT)
-                  )?.map((agent, i) => {
-                    return (
-                      <SidebarMenu
-                        key={agent.id}
-                        className="group/agent mr-0 w-full"
-                      >
-                        <SidebarMenuItem
-                          className="px-2 cursor-pointer w-full"
-                          onClick={() => handleAgentClick(agent.id)}
+                  {(expanded ? agents : agents.slice(0, DISPLAY_LIMIT))?.map(
+                    (agent, i) => {
+                      return (
+                        <SidebarMenu
+                          key={agent.id}
+                          className="group/agent mr-0 w-full"
                         >
-                          <SidebarMenuButton
-                            asChild
-                            className="data-[state=open]:bg-input! w-full"
+                          <SidebarMenuItem
+                            className="px-2 cursor-pointer w-full"
+                            onClick={() => handleAgentClick(agent.id)}
                           >
-                            <div className="flex gap-1 w-full min-w-0">
-                              <div
-                                className="p-1 rounded-full ring-2 ring-border bg-background"
-                                style={{
-                                  backgroundColor:
-                                    agent.icon?.style?.backgroundColor ||
-                                    BACKGROUND_COLORS[
-                                      i % BACKGROUND_COLORS.length
-                                    ],
-                                }}
-                              >
-                                <Avatar className="size-3.5">
-                                  <AvatarImage
-                                    src={
-                                      agent.icon?.value ||
-                                      EMOJI_DATA[i % EMOJI_DATA.length]
-                                    }
-                                  />
-                                  <AvatarFallback className="bg-transparent">
-                                    {agent.name[0]}
-                                  </AvatarFallback>
-                                </Avatar>
-                              </div>
-
-                              <div className="flex items-center min-w-0 w-full">
-                                <p className="truncate">{agent.name}</p>
-                              </div>
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                }}
-                              >
-                                <AgentDropdown
-                                  agent={agent}
-                                  side="right"
-                                  align="start"
-                                >
-                                  <SidebarMenuAction className="data-[state=open]:bg-input! data-[state=open]:opacity-100  opacity-0 group-hover/agent:opacity-100 mr-2">
-                                    <MoreHorizontal className="size-4" />
-                                  </SidebarMenuAction>
-                                </AgentDropdown>
-                              </div>
-                            </div>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      </SidebarMenu>
-                    );
-                  })}
-
-                  {bookmarkedAgents.length > 0 && expanded && (
-                    <>
-                      <Separator className="my-1" />
-                      {bookmarkedAgents.map((agent, i) => {
-                        return (
-                          <SidebarMenu
-                            key={agent.id}
-                            className="group/agent mr-0 w-full"
-                          >
-                            <SidebarMenuItem
-                              className="px-2 cursor-pointer w-full"
-                              onClick={() => handleAgentClick(agent.id)}
+                            <SidebarMenuButton
+                              asChild
+                              className="data-[state=open]:bg-input! w-full"
                             >
-                              <SidebarMenuButton
-                                asChild
-                                className="data-[state=open]:bg-input! w-full"
-                              >
-                                <div className="flex gap-1 w-full min-w-0">
-                                  <div
-                                    className="p-1 rounded-full ring-2 ring-border bg-background"
-                                    style={{
-                                      backgroundColor:
-                                        agent.icon?.style?.backgroundColor ||
-                                        BACKGROUND_COLORS[
-                                          (i + myAgents.length) %
-                                            BACKGROUND_COLORS.length
-                                        ],
-                                    }}
-                                  >
-                                    <Avatar className="size-3.5">
-                                      <AvatarImage
-                                        src={
-                                          agent.icon?.value ||
-                                          EMOJI_DATA[
-                                            (i + myAgents.length) %
-                                              EMOJI_DATA.length
-                                          ]
-                                        }
-                                      />
-                                      <AvatarFallback className="bg-transparent">
-                                        {agent.name[0]}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                  </div>
-
-                                  <div className="flex items-center min-w-0 w-full">
-                                    <p className="truncate">{agent.name}</p>
-                                  </div>
-                                  <div
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                    }}
-                                  >
-                                    <AgentDropdown
-                                      agent={agent}
-                                      side="right"
-                                      align="start"
-                                    >
-                                      <SidebarMenuAction className="data-[state=open]:bg-input! data-[state=open]:opacity-100 opacity-0 group-hover/agent:opacity-100 mr-2">
-                                        <MoreHorizontal className="size-4" />
-                                      </SidebarMenuAction>
-                                    </AgentDropdown>
-                                  </div>
+                              <div className="flex gap-1 w-full min-w-0">
+                                <div
+                                  className="p-1 rounded-full ring-2 ring-border bg-background"
+                                  style={{
+                                    backgroundColor:
+                                      agent.icon?.style?.backgroundColor ||
+                                      BACKGROUND_COLORS[
+                                        i % BACKGROUND_COLORS.length
+                                      ],
+                                  }}
+                                >
+                                  <Avatar className="size-3.5">
+                                    <AvatarImage
+                                      src={
+                                        agent.icon?.value ||
+                                        EMOJI_DATA[i % EMOJI_DATA.length]
+                                      }
+                                    />
+                                    <AvatarFallback className="bg-transparent">
+                                      {agent.name[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
                                 </div>
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          </SidebarMenu>
-                        );
-                      })}
-                    </>
+
+                                <div className="flex items-center min-w-0 w-full">
+                                  <p className="truncate">{agent.name}</p>
+                                </div>
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                  }}
+                                >
+                                  <AgentDropdown
+                                    agent={agent}
+                                    side="right"
+                                    align="start"
+                                  >
+                                    <SidebarMenuAction className="data-[state=open]:bg-input! data-[state=open]:opacity-100  opacity-0 group-hover/agent:opacity-100 mr-2">
+                                      <MoreHorizontal className="size-4" />
+                                    </SidebarMenuAction>
+                                  </AgentDropdown>
+                                </div>
+                              </div>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        </SidebarMenu>
+                      );
+                    },
                   )}
                 </div>
               </div>
 
               {/* Show More/Less Button */}
-              {myAgents.length + bookmarkedAgents.length > DISPLAY_LIMIT && (
+              {agents.length > DISPLAY_LIMIT && (
                 <SidebarMenu className="group/showmore mr-0 mt-2">
                   <SidebarMenuItem className="px-2 cursor-pointer">
                     <SidebarMenuButton
