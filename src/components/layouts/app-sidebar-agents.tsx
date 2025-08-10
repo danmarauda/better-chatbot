@@ -27,6 +27,7 @@ import { appStore } from "@/app/store";
 import { useRouter } from "next/navigation";
 import { ChatMention } from "app-types/chat";
 import { BACKGROUND_COLORS, EMOJI_DATA } from "lib/const";
+import { cn } from "lib/utils";
 
 const DISPLAY_LIMIT = 5; // Number of agents to show when collapsed
 
@@ -141,13 +142,17 @@ export function AppSidebarAgents() {
               </Link>
             </div>
           ) : (
-            <>
-              <div
-                className={
-                  expanded ? "max-h-[200px] w-full overflow-y-auto" : "w-full"
-                }
-              >
-                <div className="flex flex-col gap-1">
+            <div className="flex flex-col">
+              <div className="relative">
+                {expanded && (
+                  <div className="absolute bottom-0 left-0 right-0 h-4 z-10 pointer-events-none bg-gradient-to-t from-background to-transparent" />
+                )}
+                <div
+                  className={cn(
+                    "w-full",
+                    expanded && "max-h-[400px] overflow-y-auto",
+                  )}
+                >
                   {(expanded ? agents : agents.slice(0, DISPLAY_LIMIT))?.map(
                     (agent, i) => {
                       return (
@@ -218,7 +223,7 @@ export function AppSidebarAgents() {
 
               {/* Show More/Less Button */}
               {agents.length > DISPLAY_LIMIT && (
-                <SidebarMenu className="group/showmore mr-0 mt-2">
+                <SidebarMenu className="group/showmore">
                   <SidebarMenuItem className="px-2 cursor-pointer">
                     <SidebarMenuButton
                       onClick={() => setExpanded(!expanded)}
@@ -240,7 +245,7 @@ export function AppSidebarAgents() {
                   </SidebarMenuItem>
                 </SidebarMenu>
               )}
-            </>
+            </div>
           )}
         </SidebarMenu>
       </SidebarGroupContent>
