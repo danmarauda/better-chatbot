@@ -17,6 +17,7 @@ import { colorize } from "consola/utils";
 import {
   createDebounce,
   errorToString,
+  generateUUID,
   isNull,
   Locker,
   withTimeout,
@@ -50,7 +51,7 @@ export class MCPClient {
   toolInfo: MCPToolInfo[] = [];
   private disconnectDebounce = createDebounce();
   private needOauthProvider = false;
-
+  private inProgressToolCallIds: string[] = [];
   constructor(
     private id: string,
     private name: string,
@@ -71,6 +72,10 @@ export class MCPClient {
     if (this.authorizationUrl) return "authorizing";
     if (this.isConnected) return "connected";
     return "disconnected";
+  }
+
+  get hasActiveToolCalls() {
+    return this.inProgressToolCallIds.length > 0;
   }
 
   getAuthorizationUrl(): URL | undefined {
@@ -147,7 +152,16 @@ export class MCPClient {
   private scheduleAutoDisconnect() {
     if (!isNull(this.options.autoDisconnectSeconds)) {
       this.disconnectDebounce(() => {
-        this.disconnect();
+        // Don't disconnect if there are tool calls in progress
+        if (this.inProgressToolCallIds.length === 0) {
+          this.disconnect();
+        } else {
+          this.logger.info(
+            `Skipping auto-disconnect: ${this.inProgressToolCallIds.length} tool calls in progress`,
+          );
+          // Reschedule the disconnect check
+          this.scheduleAutoDisconnect();
+        }
       }, this.options.autoDisconnectSeconds * 1000);
     }
   }
@@ -313,6 +327,8 @@ export class MCPClient {
   }
 
   async callTool(toolName: string, input?: unknown) {
+    const id = generateUUID();
+    this.inProgressToolCallIds.push(id);
     const execute = async () => {
       const client = await this.connect();
       if (this.status === "authorizing") {
@@ -341,6 +357,11 @@ export class MCPClient {
         return v;
       })
       .ifOk(() => this.scheduleAutoDisconnect())
+      .watch(() => {
+        this.inProgressToolCallIds = this.inProgressToolCallIds.filter(
+          (toolId) => toolId !== id,
+        );
+      })
       .watch((status) => {
         if (!status.isOk) {
           this.logger.error("Tool call failed", toolName, status.error);
