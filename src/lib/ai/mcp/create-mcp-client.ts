@@ -34,6 +34,9 @@ type ClientOptions = {
 };
 
 const CONNET_TIMEOUT = IS_VERCEL_ENV ? 30000 : 120000;
+const MCP_MAX_TOTAL_TIMEOUT = process.env.MCP_MAX_TOTAL_TIMEOUT
+  ? parseInt(process.env.MCP_MAX_TOTAL_TIMEOUT, 10)
+  : undefined;
 
 /**
  * Client class for Model Context Protocol (MCP) server connections
@@ -211,7 +214,12 @@ export class MCPClient {
           cwd: process.cwd(),
         });
 
-        await withTimeout(client.connect(this.transport), CONNET_TIMEOUT);
+        await withTimeout(
+          client.connect(this.transport, {
+            maxTotalTimeout: MCP_MAX_TOTAL_TIMEOUT,
+          }),
+          CONNET_TIMEOUT,
+        );
       } else if (isMaybeRemoteConfig(this.serverConfig)) {
         const config = MCPRemoteConfigZodSchema.parse(this.serverConfig);
         const abortController = new AbortController();
@@ -224,7 +232,12 @@ export class MCPClient {
             },
             authProvider: this.createOAuthProvider(oauthState),
           });
-          await withTimeout(client.connect(this.transport), CONNET_TIMEOUT);
+          await withTimeout(
+            client.connect(this.transport, {
+              maxTotalTimeout: MCP_MAX_TOTAL_TIMEOUT,
+            }),
+            CONNET_TIMEOUT,
+          );
         } catch (streamableHttpError: any) {
           // Check if it's OAuth error and we haven't tried OAuth yet
           if (isUnauthorized(streamableHttpError) && !this.needOauthProvider) {
@@ -251,7 +264,12 @@ export class MCPClient {
             });
 
             try {
-              await withTimeout(client.connect(this.transport), CONNET_TIMEOUT);
+              await withTimeout(
+                client.connect(this.transport, {
+                  maxTotalTimeout: MCP_MAX_TOTAL_TIMEOUT,
+                }),
+                CONNET_TIMEOUT,
+              );
             } catch (sseError) {
               if (isUnauthorized(sseError) && !this.needOauthProvider) {
                 this.logger.info(
