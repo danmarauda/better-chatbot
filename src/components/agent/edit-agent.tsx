@@ -252,27 +252,28 @@ export default function EditAgent({
       });
     }
     setAgent((prev) => {
-      return objectFlow(generatedData).map((data, key) => {
+      const update: Partial<Agent> = {};
+      objectFlow(generatedData).forEach((data, key) => {
         if (key === "name") {
-          return data;
+          update.name = data as string;
         }
         if (key === "description") {
-          return data;
+          update.description = data as string;
         }
         if (key === "instructions") {
-          return {
+          update.instructions = {
             ...prev.instructions,
             systemPrompt: data as string,
           };
         }
         if (key === "role") {
-          return {
+          update.instructions = {
             ...prev.instructions,
             role: data as string,
           };
         }
-        return prev;
       });
+      return { ...prev, ...update };
     });
   }, []);
 
